@@ -1,0 +1,9 @@
+# HTTP library.
+requests == 2.18.4
+
+# Python backported libraries.
+enum34 == 1.1.6; python_version < "3.4"
+
+# Etc.
+cached-property == 1.3.1
+python-baseconv == 1.2.0
