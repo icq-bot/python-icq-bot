@@ -7,12 +7,12 @@ from icq.constant import TypingStatus
 from icq.filter import MessageFilter
 from icq.handler import MessageHandler, CommandHandler, UnknownCommandHandler
 
+logging.config.fileConfig("logging.ini")
+log = logging.getLogger(__name__)
+
 NAME = "Meme Bot"
 VERSION = "1.0.0"
 TOKEN = "000.0000000000.0000000000:000000000"
-
-logging.config.fileConfig("logging.ini")
-log = logging.getLogger(__name__)
 
 
 def message_callback(bot, event):
@@ -34,10 +34,10 @@ def help_callback(bot, event):
 
 
 def main():
-    # Creating new bot instance.
+    # Creating a new bot instance.
     bot = ICQBot(token=TOKEN, name=NAME, version=VERSION)
 
-    # Registering required handlers for messages.
+    # Registering message handlers.
     bot.dispatcher.add_handler(MessageHandler(
         callback=message_callback, filters=MessageFilter.text | MessageFilter.sticker
     ))
@@ -46,10 +46,10 @@ def main():
     bot.dispatcher.add_handler(CommandHandler(callback=help_callback, command="help"))
     bot.dispatcher.add_handler(UnknownCommandHandler(message_callback))
 
-    # Starting polling thread watching for new events from server. This is non-blocking call.
+    # Starting a polling thread watching for new events from server. This is a non-blocking call.
     bot.start_polling()
 
-    # Block current thread while bot working until SIGINT, SIGTERM or SIGABRT received.
+    # Blocking the current thread while the bot is working until SIGINT, SIGTERM or SIGABRT is received.
     bot.idle()
 
 

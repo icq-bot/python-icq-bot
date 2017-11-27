@@ -120,14 +120,15 @@ class MessageFilter(object):
 
     class _FileFilter(Filter):
         FILE_URL_REGEXP = re.compile(
-            r"^https?://(?:[fF][iI][lL][eE][sS]\.[iI][cC][qQ]\.[nN][eE][tT]/get|(?:[wW]{3}\.)?[iI][cC][qQ]\.[cC][oO][mM"
-            r"]/files|[cC][hH][aA][tT]\.[mM][yY]\.[cC][oO][mM]/files)/(?P<file_id>[a-zA-Z0-9]{32,})(?:\?.*)?$"
+            r"^[hH][tT][tT][pP][sS]?://(?:[fF][iI][lL][eE][sS]\.[iI][cC][qQ]\.[nN][eE][tT]/get|(?:[wW][wW][wW]\.)?[iI]["
+            r"cC][qQ]\.[cC][oO][mM]/files|[cC][hH][aA][tT]\.[mM][yY]\.[cC][oO][mM]/files)/(?P<file_id>[a-zA-Z0-9]{32,})"
+            r"(?:\?.*)?$"
         )
 
         def filter(self, event):
             return (
                 MessageFilter.message(event) and
-                re.search(MessageFilter._FileFilter.FILE_URL_REGEXP, event.data["message"].strip())
+                MessageFilter._FileFilter.FILE_URL_REGEXP.search(event.data["message"].strip())
             )
 
     file = _FileFilter()
@@ -135,25 +136,25 @@ class MessageFilter(object):
     class _ImageFilter(Filter):
         def filter(self, event):
             match = MessageFilter.file(event)
-            return match and type(decode_file_id(match.group("file_id")).type) is ImageType
+            return match and type(decode_file_id(match.group("file_id")).file_type) is ImageType
 
     image = _ImageFilter()
 
     class _VideoFilter(Filter):
         def filter(self, event):
             match = MessageFilter.file(event)
-            return match and type(decode_file_id(match.group("file_id")).type) is VideoType
+            return match and type(decode_file_id(match.group("file_id")).file_type) is VideoType
 
     video = _VideoFilter()
 
     class _AudioFilter(Filter):
         def filter(self, event):
             match = MessageFilter.file(event)
-            return match and type(decode_file_id(match.group("file_id")).type) is AudioType
+            return match and type(decode_file_id(match.group("file_id")).file_type) is AudioType
 
     audio = _AudioFilter()
 
-    class _LinkFilter(Filter):
+    class _URLFilter(Filter):
         URL_REGEXP = re.compile(r"^https?://\S+$", re.IGNORECASE)
 
         @cached_property
@@ -163,17 +164,17 @@ class MessageFilter(object):
         def filter(self, event):
             return (
                 MessageFilter.message(event) and
-                re.search(MessageFilter._LinkFilter.URL_REGEXP, event.data["message"].strip()) is not None and
+                MessageFilter._URLFilter.URL_REGEXP.search(event.data["message"].strip()) is not None and
                 self._filter(event)
             )
 
-    link = _LinkFilter()
+    url = _URLFilter()
 
     class _TextFilter(Filter):
         @cached_property
         def _filter(self):
             return InvertFilter(AnyFilter(
-                (MessageFilter.command, MessageFilter.sticker, MessageFilter.file, MessageFilter.link)
+                (MessageFilter.command, MessageFilter.sticker, MessageFilter.file, MessageFilter.url)
             ))
 
         def filter(self, event):

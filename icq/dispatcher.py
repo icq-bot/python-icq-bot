@@ -1,7 +1,5 @@
 import logging
 
-from icq.handler import Handler
-
 
 class Dispatcher(object):
     def __init__(self, bot):
@@ -13,22 +11,23 @@ class Dispatcher(object):
         self.handlers = []
 
     def add_handler(self, handler):
-        if not isinstance(handler, Handler):
-            raise TypeError("Parameter 'handler' must be an instance of {} class!".format(Handler.__name__))
-
         self.handlers.append(handler)
 
     def remove_handler(self, handler):
-        if not isinstance(handler, Handler):
-            raise TypeError("Parameter 'handler' must be an instance of {} class!".format(Handler.__name__))
-
         if handler in self.handlers:
             self.handlers.remove(handler)
 
     def dispatch(self, event):
         try:
-            for handler in (h for h in self.handlers if h.check(event)):
-                handler.handle(event, self)
+            for handler in (h for h in self.handlers if h.check(event=event, dispatcher=self)):
+                handler.handle(event=event, dispatcher=self)
+        except StopDispatch:
+            self.log.debug("StopDispatch caught, stopping dispatching.")
         except Exception:
             self.log.exception("Exception while handling event!")
             raise
+
+
+class StopDispatch(Exception):
+    """ If raised from handler 'check' or 'handle' methods then dispatching will be stopped. """
+    pass

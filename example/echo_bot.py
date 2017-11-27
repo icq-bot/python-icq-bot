@@ -5,13 +5,13 @@ from icq.constant import TypingStatus
 from icq.filter import MessageFilter
 from icq.handler import TypingHandler, MessageHandler, CommandHandler, UnknownCommandHandler, FeedbackCommandHandler
 
+logging.config.fileConfig("logging.ini")
+log = logging.getLogger(__name__)
+
 NAME = "Echo Bot"
 VERSION = "1.0.0"
 TOKEN = "000.0000000000.0000000000:000000000"
 OWNER = "000000000"
-
-logging.config.fileConfig("logging.ini")
-log = logging.getLogger(__name__)
 
 
 def help_callback(bot, event):
@@ -21,7 +21,9 @@ def help_callback(bot, event):
 
 def status_callback(bot, event):
     log.debug("Command 'status' received, replying.")
-    bot.send_im(target=event.data["source"]["aimId"], message="https://icq.com/files/05k5r12erfSSAgyt09sNgH5a11d7cc1aj")
+    bot.send_im(
+        target=event.data["source"]["aimId"], message="https://files.icq.net/get/05k5r12erfSSAgyt09sNgH5a11d7cc1aj"
+    )
 
 
 def typing_callback(bot, event):
@@ -40,10 +42,10 @@ def message_callback(bot, event):
 
 
 def main():
-    # Creating new bot instance.
+    # Creating a new bot instance.
     bot = ICQBot(token=TOKEN, name=NAME, version=VERSION)
 
-    # Registering required handlers for typing and messages.
+    # Registering message handlers.
     bot.dispatcher.add_handler(TypingHandler(typing_callback))
     bot.dispatcher.add_handler(MessageHandler(
         callback=message_callback, filters=MessageFilter.text | MessageFilter.sticker
@@ -52,13 +54,13 @@ def main():
     # Registering command handlers.
     bot.dispatcher.add_handler(CommandHandler(callback=help_callback, command="help"))
     bot.dispatcher.add_handler(CommandHandler(callback=status_callback, command="status"))
-    bot.dispatcher.add_handler(FeedbackCommandHandler(command="feedback", target=OWNER))
+    bot.dispatcher.add_handler(FeedbackCommandHandler(target=OWNER))
     bot.dispatcher.add_handler(UnknownCommandHandler(message_callback))
 
-    # Starting polling thread watching for new events from server. This is non-blocking call.
+    # Starting a polling thread watching for new events from server. This is a non-blocking call.
     bot.start_polling()
 
-    # Block current thread while bot working until SIGINT, SIGTERM or SIGABRT received.
+    # Blocking the current thread while the bot is working until SIGINT, SIGTERM or SIGABRT is received.
     bot.idle()
 
 

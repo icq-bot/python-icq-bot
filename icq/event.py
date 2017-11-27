@@ -21,8 +21,8 @@ class EventType(Enum):
 
 
 class Event(object):
-    def __init__(self, type_, data):
+    def __init__(self, event_type, data):
         super(Event, self).__init__()
 
-        self.type_ = type_
+        self.event_type = event_type
         self.data = data
