@@ -2,10 +2,11 @@ import logging.config
 import re
 
 from icq.bot import ICQBot
+from icq.constant import TypingStatus
 from icq.filter import MessageFilter
 from icq.handler import (
-    CommandHandler, UnknownCommandHandler, UserAddedToBuddyListHandler, MessageHandler, DefaultHandler,
-    FeedbackCommandHandler
+    CommandHandler, UnknownCommandHandler, UserAddedToBuddyListHandler, TypingHandler, MessageHandler, DefaultHandler,
+    FeedbackCommandHandler,
 )
 from icq.util import decode_file_id
 
@@ -43,6 +44,13 @@ def unknown_command_callback(bot, event):
 def user_added_callback(bot, event):
     source_uin = event.data["requester"]
     bot.send_im(target=source_uin, message="User '{source_uin}' added bot to buddy list.".format(source_uin=source_uin))
+
+
+def typing_callback(bot, event):
+    source_uin = event.data["aimId"]
+    bot.send_im(target=source_uin, message="Typing status '{typing_status}' received from user {source_uin}.".format(
+        source_uin=source_uin, typing_status=TypingStatus(event.data["typingStatus"]).value
+    ))
 
 
 def text_callback(bot, event):
@@ -130,6 +138,7 @@ def main():
     bot.dispatcher.add_handler(CommandHandler(callback=help_command_callback, command="help"))
     bot.dispatcher.add_handler(UnknownCommandHandler(callback=unknown_command_callback))
     bot.dispatcher.add_handler(UserAddedToBuddyListHandler(callback=user_added_callback))
+    bot.dispatcher.add_handler(TypingHandler(callback=typing_callback))
     bot.dispatcher.add_handler(MessageHandler(callback=text_callback, filters=MessageFilter.text))
     bot.dispatcher.add_handler(MessageHandler(callback=sticker_callback, filters=MessageFilter.sticker))
     bot.dispatcher.add_handler(MessageHandler(callback=url_callback, filters=MessageFilter.url))
