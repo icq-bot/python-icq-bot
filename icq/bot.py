@@ -47,7 +47,7 @@ class ICQBot(object):
 
     @cached_property
     def _user_agent(self):
-        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.5".format(
+        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.6".format(
             name=self.name, version=self.version, uin="", nick=""
         )
 
@@ -308,6 +308,19 @@ class ICQBot(object):
                 "reqId": str(uuid.uuid4()),
                 "aimsid": self.token,
                 "params": params
+            },
+            timeout=self.timeout_s
+        )
+
+    def remove_buddy(self, buddy, group=None, all_groups=True):
+        return self.http_session.post(
+            url="{}/buddylist/removeBuddy".format(self.api_base_url),
+            data={
+                "r": uuid.uuid4(),
+                "aimsid": self.token,
+                "buddy": buddy,
+                "group": group,
+                "allGroups": "1" if all_groups else "0"
             },
             timeout=self.timeout_s
         )

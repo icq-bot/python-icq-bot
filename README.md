@@ -1,6 +1,6 @@
 # python-icq-bot
 
-Pure Python interface for ICQ Bot API.
+Pure Python interface for ICQ Bot API. Bot cookbook for Humans.
 
 # Getting started
 
@@ -12,7 +12,6 @@ See example directory.
 
 ## Starting your bot
 
-### Linux and macOS
 ```bash
 ( { [ ! -d venv ] && virtualenv venv; } || true && source venv/bin/activate && pip install -r requirements.txt && cd example && PYTHONPATH='..' python test_bot.py && deactivate )
 ```

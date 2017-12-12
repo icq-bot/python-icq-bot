@@ -1,6 +1,7 @@
 import re
 from abc import ABCMeta, abstractmethod
 
+import six
 from cached_property import cached_property
 
 from icq.constant import ImageType, VideoType, AudioType
@@ -97,7 +98,7 @@ class MessageFilter(object):
 
     class _MessageFilter(Filter):
         def filter(self, event):
-            return "message" in event.data and isinstance(event.data["message"], str)
+            return "message" in event.data and isinstance(event.data["message"], six.string_types)
 
     message = _MessageFilter()
 

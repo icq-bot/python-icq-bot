@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
+import six
+
 from icq.dispatcher import StopDispatch
 from icq.event import EventType
 from icq.filter import MessageFilter
@@ -57,21 +59,30 @@ class CommandHandler(MessageHandler):
     def check(self, event, dispatcher):
         return super(CommandHandler, self).check(event=event, dispatcher=dispatcher) and (not self.command or any(
             event.data["message"].partition(" ")[0][1:].strip().lower() == c.lower() for c in (
-                (self.command,) if isinstance(self.command, str) else self.command
+                (self.command,) if isinstance(self.command, six.string_types) else self.command
             )
         ))
 
 
+class HelpCommandHandler(CommandHandler):
+    def __init__(self, callback):
+        super(HelpCommandHandler, self).__init__(callback=callback, command="help")
+
+
 class FeedbackCommandHandler(CommandHandler):
     def message_callback(self, bot, event):
-        bot.send_im(target=self.target, message="Feedback from '{source_uin}': '{message}'.".format(
+        bot.send_im(target=self.target, message="Feedback from {source_uin}: {message}.".format(
             source_uin=event.data["source"]["aimId"], message=event.data["message"].partition(" ")[2]
         ))
 
-    def __init__(self, target, command="feedback"):
+        if self.reply:
+            bot.send_im(target=event.data["source"]["aimId"], message=self.reply)
+
+    def __init__(self, target, command="feedback", reply=None):
         super(FeedbackCommandHandler, self).__init__(callback=self.message_callback, command=command)
 
         self.target = target
+        self.reply = reply
 
 
 class UnknownCommandHandler(MessageHandler):
