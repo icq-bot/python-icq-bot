@@ -16,7 +16,11 @@ class DynamicRotatingFileHandler(RotatingFileHandler):
         filename = os.path.join(dir_name, script_name + file_name)
 
         if dir_name:
-            os.makedirs(dir_name, exist_ok=True)
+            try:
+                os.makedirs(dir_name)
+            except OSError:
+                if not os.path.isdir(dir_name):
+                    raise
 
         super(DynamicRotatingFileHandler, self).__init__(
             filename=filename, mode=mode, maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay

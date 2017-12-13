@@ -47,7 +47,7 @@ class ICQBot(object):
 
     @cached_property
     def _user_agent(self):
-        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.6".format(
+        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.7".format(
             name=self.name, version=self.version, uin="", nick=""
         )
 

@@ -1,5 +1,5 @@
 # Local virtualenv directory.
-/venv/
+/venv*/
 
 # Compiled / optimized / DLL files.
 __pycache__/
