@@ -1,4 +1,5 @@
 import cgi
+import json
 import logging
 import os
 import re
@@ -16,10 +17,10 @@ from icq.event import Event, EventType
 from icq.filter import MessageFilter
 
 try:
-    from urllib import parse
+    from urllib import parse as urlparse
 except ImportError:
     # noinspection PyUnresolvedReferences
-    import urlparse as parse
+    import urlparse
 
 
 class ICQBot(object):
@@ -47,7 +48,7 @@ class ICQBot(object):
 
     @cached_property
     def _user_agent(self):
-        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.7".format(
+        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.8".format(
             name=self.name, version=self.version, uin="", nick=""
         )
 
@@ -123,9 +124,9 @@ class ICQBot(object):
         poll_timeout_s = (self.poll_timeout_s if poll_timeout_s is None else poll_timeout_s) * 1000
 
         if self._fetch_base_url:
-            (scheme, netloc, path, query, _) = parse.urlsplit(self._fetch_base_url)
+            (scheme, netloc, path, query, _) = urlparse.urlsplit(self._fetch_base_url)
             url = "{scheme}://{netloc}{path}".format(scheme=scheme, netloc=netloc, path=path)
-            params = parse.parse_qs(query, keep_blank_values=True)
+            params = urlparse.parse_qs(query, keep_blank_values=True)
         else:
             url = "{}/fetchEvents".format(self.api_base_url)
             params = {"first": [1]}
@@ -337,14 +338,26 @@ class ICQBot(object):
             timeout=self.timeout_s
         )
 
-    def send_im(self, target, message):
+    def send_im(self, target, message, parse=None):
+        """
+        Send text message.
+
+        :param target: Target user UIN or chat ID.
+        :param message: Message text.
+        :param parse: An iterable with several values from :class:`MessageParseType` specifying which message
+            items should be parsed by the target client (making preview, snippets, etc.). Specify an empty iterable to
+            avoid parsing the message at the target client. By default all types are included.
+
+        :return: HTTP response.
+        """
         return self.http_session.post(
             url="{}/im/sendIM".format(self.api_base_url),
             data={
                 "r": uuid.uuid4(),
                 "aimsid": self.token,
                 "t": target,
-                "message": message
+                "message": message,
+                "parse": json.dumps([p.value for p in parse]) if parse is not None else None
             },
             timeout=self.timeout_s
         )

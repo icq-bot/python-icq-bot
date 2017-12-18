@@ -39,3 +39,8 @@ class AudioType(Enum):
     RESERVED_L = "L"
     RESERVED_M = "M"
     RESERVED_N = "N"
+
+
+class MessageParseType(Enum):
+    URL = "url"
+    FILE_SHARING = "filesharing"
