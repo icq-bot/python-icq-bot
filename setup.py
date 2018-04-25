@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-setup(name='icq',
+setup(name='python-icq-bot',
       version='0.0.8',
       description='Api library for icq',
       packages=find_packages(exclude=["example"]),
