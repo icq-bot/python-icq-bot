@@ -1,3 +1,4 @@
+import signal
 from collections import namedtuple
 
 from baseconv import BaseConverter
@@ -37,3 +38,15 @@ def decode_file_id(file_id):
             length = int(BASE62_ICQ_CONVERTER.decode(file_id[1:5]))
 
     return namedtuple("_", ("file_type", "width", "height", "length", "color"))(file_type, width, height, length, color)
+
+
+_signals = {getattr(signal, n): n for n in dir(signal) if n.startswith("SIG") and "_" not in n}
+
+
+def signal_name_by_code(code):
+    return _signals[code]
+
+
+def invalidate_cached_property(o, name):
+    if hasattr(o, name):
+        delattr(o, name)

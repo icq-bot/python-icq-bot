@@ -1,6 +1,7 @@
-from enum import Enum
+from enum import Enum, unique
 
 
+@unique
 class EventType(Enum):
     MY_INFO = "myInfo"
     PRESENCE = "presence"
@@ -18,11 +19,15 @@ class EventType(Enum):
     ALERT = "alert"
     SERVICE = "service"
     NOTIFICATION = "notification"
+    MENTION_ME_MESSAGE = "mentionMeMessage"
 
 
 class Event(object):
-    def __init__(self, event_type, data):
+    def __init__(self, type_, data):
         super(Event, self).__init__()
 
-        self.event_type = event_type
+        self.type = type_
         self.data = data
+
+    def __repr__(self):
+        return "Event(type='{self.type}', data='{self.data}')".format(self=self)

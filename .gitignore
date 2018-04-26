@@ -1,4 +1,4 @@
-# Local virtualenv directory.
+# Local virtualenv directories.
 /venv*/
 
 # Compiled / optimized / DLL files.

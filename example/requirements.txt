@@ -1,0 +1,13 @@
+more-itertools == 4.1.0
+expiringdict == 1.1.4
+googletrans == 2.2.0
+transliterate == 1.10
+alphabet-detector == 0.0.7
+Pillow == 4.3.0
+apiai == 1.2.3
+lxml == 4.1.1
+oauthlib == 2.0.6
+SQLAlchemy == 1.2.3
+PyMySQL == 0.8.0
+apscheduler == 3.5.1
+pytz

@@ -10,11 +10,14 @@ from time import time, sleep
 
 import requests
 from cached_property import cached_property
+from requests import ReadTimeout
 from requests.adapters import HTTPAdapter
 
 from icq.dispatcher import Dispatcher
 from icq.event import Event, EventType
 from icq.filter import MessageFilter
+from icq.handler import MyInfoHandler
+from icq.util import signal_name_by_code, invalidate_cached_property
 
 try:
     from urllib import parse as urlparse
@@ -24,7 +27,7 @@ except ImportError:
 
 
 class ICQBot(object):
-    def __init__(self, token, api_url_base=None, name=None, version=None, timeout_s=5.0, poll_timeout_s=60.0):
+    def __init__(self, token, api_url_base=None, name=None, version=None, timeout_s=20, poll_timeout_s=60):
         super(ICQBot, self).__init__()
 
         self.log = logging.getLogger(__name__)
@@ -36,20 +39,42 @@ class ICQBot(object):
         self.timeout_s = timeout_s
         self.poll_timeout_s = poll_timeout_s
 
-        self.user = None
         self.dispatcher = Dispatcher(self)
+        self.dispatcher.add_handler(MyInfoHandler())
         self.running = False
 
+        self._uin = self._nick = None
         self._fetch_base_url = None
         self._next_fetch_after_s = 0
 
         self.__lock = Lock()
         self.__polling_thread = None
 
+    @property
+    def uin(self):
+        return self._uin
+
+    @uin.setter
+    def uin(self, value):
+        self._uin = value
+        invalidate_cached_property(self, "user_agent")
+
+    @property
+    def nick(self):
+        return self._nick
+
+    @nick.setter
+    def nick(self, value):
+        self._nick = value
+        invalidate_cached_property(self, "user_agent")
+
     @cached_property
-    def _user_agent(self):
-        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.8".format(
-            name=self.name, version=self.version, uin="", nick=""
+    def user_agent(self):
+        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.9".format(
+            name=self.name,
+            version=self.version,
+            uin="" if self.uin is None else self.uin,
+            nick="" if self.nick is None else self.nick
         )
 
     @cached_property
@@ -57,9 +82,7 @@ class ICQBot(object):
         session = requests.Session()
 
         for scheme in ("http://", "https://"):
-            session.mount(scheme, LoggingHTTPAdapter())
-
-        session.headers["User-Agent"] = self._user_agent
+            session.mount(scheme, BotLoggingHTTPAdapter(bot=self))
 
         return session
 
@@ -70,7 +93,7 @@ class ICQBot(object):
             try:
                 response = self.fetch_events()
                 for event in response.json()["response"]["data"]["events"]:
-                    self.dispatcher.dispatch(Event(event_type=EventType(event["type"]), data=event["eventData"]))
+                    self.dispatcher.dispatch(Event(type_=EventType(event["type"]), data=event["eventData"]))
             except Exception:
                 self.log.exception("Exception while polling!")
 
@@ -106,6 +129,9 @@ class ICQBot(object):
     # noinspection PyUnusedLocal
     def _signal_handler(self, sig, stack_frame):
         if self.running:
+            self.log.debug("Stopping bot by signal '{name} ({code})'. Repeat for force exit.".format(
+                name=signal_name_by_code(sig), code=sig
+            ))
             self.stop()
         else:
             self.log.warning("Force exiting.")
@@ -121,7 +147,7 @@ class ICQBot(object):
             sleep(1)
 
     def fetch_events(self, poll_timeout_s=None):
-        poll_timeout_s = (self.poll_timeout_s if poll_timeout_s is None else poll_timeout_s) * 1000
+        poll_timeout_s = self.poll_timeout_s if poll_timeout_s is None else poll_timeout_s
 
         if self._fetch_base_url:
             (scheme, netloc, path, query, _) = urlparse.urlsplit(self._fetch_base_url)
@@ -134,7 +160,7 @@ class ICQBot(object):
         params.update({
             "r": uuid.uuid4(),
             "aimsid": [self.token],
-            "timeout": [int(poll_timeout_s)]
+            "timeout": [int(poll_timeout_s) * 1000]
         })
 
         time_to_wait_s = self._next_fetch_after_s - time()
@@ -338,41 +364,49 @@ class ICQBot(object):
             timeout=self.timeout_s
         )
 
-    def send_im(self, target, message, parse=None):
+    def send_im(self, target, message, mentions=None, parse=None):
         """
         Send text message.
 
         :param target: Target user UIN or chat ID.
         :param message: Message text.
-        :param parse: An iterable with several values from :class:`MessageParseType` specifying which message
-            items should be parsed by the target client (making preview, snippets, etc.). Specify an empty iterable to
-            avoid parsing the message at the target client. By default all types are included.
+        :param mentions: Iterable with UINs to mention in message.
+        :param parse: Iterable with several values from :class:`icq.constant.MessageParseType` specifying which message
+            items should be parsed by target client (making preview, snippets, etc.). Specify empty iterable to avoid
+            parsing message at target client. By default all types are included.
 
         :return: HTTP response.
         """
-        return self.http_session.post(
-            url="{}/im/sendIM".format(self.api_base_url),
-            data={
-                "r": uuid.uuid4(),
-                "aimsid": self.token,
-                "t": target,
-                "message": message,
-                "parse": json.dumps([p.value for p in parse]) if parse is not None else None
-            },
-            timeout=self.timeout_s
-        )
+        try:
+            return self.http_session.post(
+                url="{}/im/sendIM".format(self.api_base_url),
+                data={
+                    "r": uuid.uuid4(),
+                    "aimsid": self.token,
+                    "t": target,
+                    "message": message,
+                    "mentions": ",".join(mentions) if mentions is not None else None,
+                    "parse": json.dumps([p.value for p in parse]) if parse is not None else None
+                },
+                timeout=self.timeout_s
+            )
+        except ReadTimeout:
+            self.log.exception("Timeout while sending request!")
 
     def send_sticker(self, target, sticker_id):
-        return self.http_session.post(
-            url="{}/im/sendSticker".format(self.api_base_url),
-            data={
-                "r": uuid.uuid4(),
-                "aimsid": self.token,
-                "t": target,
-                "stickerId": sticker_id
-            },
-            timeout=self.timeout_s
-        )
+        try:
+            return self.http_session.post(
+                url="{}/im/sendSticker".format(self.api_base_url),
+                data={
+                    "r": uuid.uuid4(),
+                    "aimsid": self.token,
+                    "t": target,
+                    "stickerId": sticker_id
+                },
+                timeout=self.timeout_s
+            )
+        except ReadTimeout:
+            self.log.exception("Timeout while sending request!")
 
     def set_typing(self, target, typing_status):
         return self.http_session.post(
@@ -420,7 +454,7 @@ class LoggingHTTPAdapter(HTTPAdapter):
 
     @staticmethod
     def _headers_to_string(headers):
-        return "\n".join(("{key}: {value}".format(key=key, value=value) for (key, value) in headers.items()))
+        return "\n".join((u"{key}: {value}".format(key=key, value=value) for (key, value) in headers.items()))
 
     @staticmethod
     def _body_to_string(body):
@@ -433,7 +467,7 @@ class LoggingHTTPAdapter(HTTPAdapter):
 
     def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
         if self.log.isEnabledFor(logging.DEBUG):
-            self.log.debug("{method} {url}\n{headers}{body}\n".format(
+            self.log.debug(u"{method} {url}\n{headers}{body}".format(
                 method=request.method,
                 url=request.url,
                 headers=LoggingHTTPAdapter._headers_to_string(request.headers),
@@ -446,7 +480,7 @@ class LoggingHTTPAdapter(HTTPAdapter):
         response = super(LoggingHTTPAdapter, self).send(request, stream, timeout, verify, cert, proxies)
 
         if self.log.isEnabledFor(logging.DEBUG):
-            self.log.debug("{status_code} {reason}\n{headers}{body}\n".format(
+            self.log.debug(u"{status_code} {reason}\n{headers}{body}".format(
                 status_code=response.status_code,
                 reason=response.reason,
                 headers=LoggingHTTPAdapter._headers_to_string(response.headers),
@@ -456,6 +490,17 @@ class LoggingHTTPAdapter(HTTPAdapter):
             ))
 
         return response
+
+
+class BotLoggingHTTPAdapter(LoggingHTTPAdapter):
+    def __init__(self, bot, *args, **kwargs):
+        super(BotLoggingHTTPAdapter, self).__init__(*args, **kwargs)
+
+        self.bot = bot
+
+    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+        request.headers["User-Agent"] = self.bot.user_agent
+        return super(BotLoggingHTTPAdapter, self).send(request, stream, timeout, verify, cert, proxies)
 
 
 class FileNotFoundException(Exception):

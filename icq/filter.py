@@ -160,13 +160,12 @@ class MessageFilter(object):
 
         @cached_property
         def _filter(self):
-            return InvertFilter(MessageFilter.file)
+            return AndFilter(MessageFilter.message, InvertFilter(MessageFilter.file))
 
         def filter(self, event):
             return (
-                MessageFilter.message(event) and
-                MessageFilter._URLFilter.URL_REGEXP.search(event.data["message"].strip()) is not None and
-                self._filter(event)
+                self._filter(event) and
+                MessageFilter._URLFilter.URL_REGEXP.search(event.data["message"].strip()) is not None
             )
 
     url = _URLFilter()
@@ -174,12 +173,12 @@ class MessageFilter(object):
     class _TextFilter(Filter):
         @cached_property
         def _filter(self):
-            return InvertFilter(AnyFilter(
+            return AndFilter(MessageFilter.message, InvertFilter(AnyFilter(
                 (MessageFilter.command, MessageFilter.sticker, MessageFilter.file, MessageFilter.url)
-            ))
+            )))
 
         def filter(self, event):
-            return MessageFilter.message(event) and self._filter(event)
+            return self._filter(event)
 
     text = _TextFilter()
 

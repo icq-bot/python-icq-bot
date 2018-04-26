@@ -1,10 +1,10 @@
 import logging
 import os
+import random
 import sys
+from enum import Enum
 from functools import wraps
-from logging.handlers import RotatingFileHandler
-
-from expiringdict import ExpiringDict
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
 
 class DynamicRotatingFileHandler(RotatingFileHandler):
@@ -27,6 +27,37 @@ class DynamicRotatingFileHandler(RotatingFileHandler):
         )
 
 
+class DynamicTimedRotatingFileHandler(TimedRotatingFileHandler):
+    # noinspection PyPep8Naming
+    def __init__(self, filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False):
+        dir_name = os.path.dirname(filename)
+        file_name = os.path.basename(filename)
+        script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+        filename = os.path.join(dir_name, script_name + file_name)
+
+        if dir_name:
+            try:
+                os.makedirs(dir_name)
+            except OSError:
+                if not os.path.isdir(dir_name):
+                    raise
+
+        super(DynamicTimedRotatingFileHandler, self).__init__(
+            filename=filename, when=when, interval=interval, backupCount=backupCount, encoding=encoding, delay=delay,
+            utc=utc
+        )
+
+
+class LineBreakFormatter(logging.Formatter):
+    def format(self, record):
+        return super(LineBreakFormatter, self).format(record) + "\n"
+
+
+def random_choice(sequence):
+    """ Same as :meth:`random.choice`, but also supports :class:`set` type to be passed as sequence. """
+    return random.choice(tuple(sequence) if isinstance(sequence, set) else sequence)
+
+
 def log_call(func):
     logger = logging.getLogger(func.__module__)
 
@@ -41,48 +72,13 @@ def log_call(func):
     return _log
 
 
-def parametrized(decorator):
-    """
-    Decorator for easily defining parametrized decorators. Should be used like this:
-
-    @parametrized
-    def my_decorator(func, *args, **kwargs):
-        @wraps
-        def _my_decorator(*args_, **kwargs_):
-            # At this point args and kwargs are decorator parameters while args_ and kwargs_ are decorated function
-            # parameters.
-            return func(*args_, **kwargs_)
-
-        return _my_decorator
+class AutoNumberEnum(Enum):
+    def __new__(cls):
+        value = len(cls.__members__)
+        obj = object.__new__(cls)
+        obj._value_ = value
+        return obj
 
 
-    @my_decorator("a", "b", "c")
-    def my_function(x, y, z):
-        pass
-
-
-    my_function("x", "y", "z")
-    """
-
-    def _decorator_maker(*args, **kwargs):
-        def _decorator_wrapper(func):
-            return decorator(func, *args, **kwargs)
-
-        return _decorator_wrapper
-
-    return _decorator_maker
-
-
-@parametrized
-def lru_cache(func, max_len, max_age_seconds):
-    cache = ExpiringDict(max_len=max_len, max_age_seconds=max_age_seconds)
-
-    def _lru_cache(*args, **kwargs):
-        key = (args, frozenset(kwargs.items()))
-        try:
-            value = cache[key]
-        except KeyError:
-            value = cache[key] = func(*args, **kwargs)
-        return value
-
-    return _lru_cache
+def mean(data):
+    return float(sum(data)) / max(len(data), 1)
