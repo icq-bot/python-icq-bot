@@ -114,6 +114,8 @@ class MessageFilter(object):
     command = _CommandFilter()
 
     class _StickerFilter(Filter):
+        STICKER_ID_REGEXP = re.compile(r"^ext:(?P<ext>\d+):sticker:(?P<sticker>\d+)$")
+
         def filter(self, event):
             return "stickerId" in event.data
 

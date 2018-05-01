@@ -13,6 +13,7 @@ from cached_property import cached_property
 from requests import ReadTimeout
 from requests.adapters import HTTPAdapter
 
+import icq
 from icq.dispatcher import Dispatcher
 from icq.event import Event, EventType
 from icq.filter import MessageFilter
@@ -70,11 +71,12 @@ class ICQBot(object):
 
     @cached_property
     def user_agent(self):
-        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/0.0.9".format(
+        return "{name}/{version} (uin={uin}; nick={nick}) python-icq-bot/{library_version}".format(
             name=self.name,
             version=self.version,
             uin="" if self.uin is None else self.uin,
-            nick="" if self.nick is None else self.nick
+            nick="" if self.nick is None else self.nick,
+            library_version=icq.__version__
         )
 
     @cached_property
@@ -229,6 +231,40 @@ class ICQBot(object):
             result = (self.http_session.get(url=f["dlink"], timeout=self.timeout_s, stream=True) for f in file_list)
 
             return next(result) if len(file_list) == 1 else result
+
+    def sticker_pack_info(self, store_id=None, pack_id=None, file_id=None):
+        if store_id is None and pack_id is None and file_id is None:
+            raise ValueError("Either 'store_id' or 'pack_id' or 'file_id' must be specified!")
+
+        return self.http_session.get(
+            url="https://store.icq.com/openstore/packinfo",
+            params={
+                "store_id": store_id,
+                "id": pack_id,
+                "file_id": file_id
+            },
+            timeout=self.timeout_s
+        )
+
+    def download_sticker(self, sticker_id, sticker_size):
+        # noinspection PyProtectedMember
+        match = MessageFilter._StickerFilter.STICKER_ID_REGEXP.search(string=sticker_id)
+        if match:
+            ext = match.group("ext")
+            sticker = match.group("sticker")
+            pack_info_response_json = self.sticker_pack_info(pack_id=ext).json()
+
+            return self.http_session.get(
+                url="{base_url}/{base_url_postfix}/{ext}/{sticker}/{size}".format(
+                    base_url=pack_info_response_json["base_url"],
+                    base_url_postfix=pack_info_response_json["base_url_postfix"],
+                    ext=ext,
+                    sticker=sticker,
+                    size=sticker_size.value
+                ),
+                timeout=self.timeout_s,
+                stream=True
+            )
 
     def get_buddy_list(self):
         return self.http_session.get(

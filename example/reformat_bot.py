@@ -9,8 +9,10 @@ from lxml import etree
 from icq.bot import ICQBot
 from icq.constant import TypingStatus
 from icq.filter import MessageFilter
-from icq.handler import MessageHandler, UserAddedToBuddyListHandler, FeedbackCommandHandler, \
-    HelpCommandHandler, UnknownCommandHandler, CommandHandler
+from icq.handler import (
+    MessageHandler, UserAddedToBuddyListHandler, FeedbackCommandHandler, HelpCommandHandler, UnknownCommandHandler,
+    CommandHandler
+)
 
 logging.config.fileConfig("logging.ini")
 log = logging.getLogger(__name__)

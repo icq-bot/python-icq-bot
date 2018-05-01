@@ -62,3 +62,10 @@ class AudioType(Enum):
 class MessageParseType(Enum):
     URL = "url"
     FILE_SHARING = "filesharing"
+
+
+@unique
+class StickerSize(Enum):
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"

@@ -1,12 +1,5 @@
-# HTTP library.
 requests == 2.18.4
-
-# Python backported libraries.
 enum34 == 1.1.6; python_version < "3.4"
-
-# Python 2/3 compatibility layer.
 six == 1.11.0
-
-# Etc.
 cached-property == 1.4.0
 python-baseconv == 1.2.0
