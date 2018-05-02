@@ -1,18 +1,20 @@
-import icq
+import io
 from os import path
 
 from setuptools import setup, find_packages
+
+import icq
 
 here = path.abspath(path.dirname(__file__))
 
 
 def long_description():
-    with open(file=path.join(here, "README.md"), encoding="utf-8") as f:
+    with io.open(file=path.join(here, "README.md"), encoding="utf-8") as f:
         return f.read()
 
 
 def requirements():
-    with open(file=path.join(here, "requirements.txt")) as f:
+    with io.open(file=path.join(here, "requirements.txt")) as f:
         return f.readlines()
 
 
