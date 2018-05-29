@@ -3,22 +3,24 @@ import json
 import logging
 import os
 import re
+import time
 import uuid
 from signal import signal, SIGINT, SIGTERM, SIGABRT
 from threading import Thread, Lock
-from time import time, sleep
+from time import sleep
 
 import requests
 from cached_property import cached_property
+from expiringdict import ExpiringDict
 from requests import ReadTimeout
 from requests.adapters import HTTPAdapter
 
 import icq
-from icq.dispatcher import Dispatcher
+from icq.dispatcher import Dispatcher, StopDispatch
 from icq.event import Event, EventType
 from icq.filter import MessageFilter
-from icq.handler import MyInfoHandler
-from icq.util import signal_name_by_code, invalidate_cached_property
+from icq.handler import MyInfoHandler, MessageHandler
+from icq.util import signal_name_by_code, invalidate_cached_property, wrap
 
 try:
     from urllib import parse as urlparse
@@ -50,6 +52,9 @@ class ICQBot(object):
 
         self.__lock = Lock()
         self.__polling_thread = None
+
+        self.__sent_im_cache = ExpiringDict(max_len=2 ** 10, max_age_seconds=60)
+        self.dispatcher.add_handler(SkipDuplicateIMHandler(self.__sent_im_cache))
 
     @property
     def uin(self):
@@ -165,7 +170,7 @@ class ICQBot(object):
             "timeout": [int(poll_timeout_s) * 1000]
         })
 
-        time_to_wait_s = self._next_fetch_after_s - time()
+        time_to_wait_s = self._next_fetch_after_s - time.monotonic()
         if time_to_wait_s > 0:
             self.log.debug("Sleeping for {:.3f} seconds before next fetch.".format(time_to_wait_s))
             sleep(time_to_wait_s)
@@ -173,10 +178,10 @@ class ICQBot(object):
         try:
             result = self.http_session.get(url=url, params=params, timeout=poll_timeout_s + self.timeout_s)
             result_data = result.json()["response"]["data"]
-            self._next_fetch_after_s = time() + result_data.get("timeToNextFetch", 1) / 1000
+            self._next_fetch_after_s = time.monotonic() + result_data.get("timeToNextFetch", 1) / 1000
             self._fetch_base_url = result_data["fetchBaseURL"]
         except Exception:
-            self._next_fetch_after_s = time() + 1
+            self._next_fetch_after_s = time.monotonic() + 1
             raise
 
         return result
@@ -237,7 +242,7 @@ class ICQBot(object):
             raise ValueError("Either 'store_id' or 'pack_id' or 'file_id' must be specified!")
 
         return self.http_session.get(
-            url="https://store.icq.com/openstore/packinfo",
+            url="{}/store/packinfo".format(self.api_base_url),
             params={
                 "store_id": store_id,
                 "id": pack_id,
@@ -400,7 +405,7 @@ class ICQBot(object):
             timeout=self.timeout_s
         )
 
-    def send_im(self, target, message, mentions=None, parse=None):
+    def send_im(self, target, message, mentions=None, parse=None, wrap_length=5000):
         """
         Send text message.
 
@@ -410,22 +415,27 @@ class ICQBot(object):
         :param parse: Iterable with several values from :class:`icq.constant.MessageParseType` specifying which message
             items should be parsed by target client (making preview, snippets, etc.). Specify empty iterable to avoid
             parsing message at target client. By default all types are included.
+        :param wrap_length: Maximum length of symbols in one message. Text exceeding this length will be sent in several
+            messages.
 
         :return: HTTP response.
         """
         try:
-            return self.http_session.post(
-                url="{}/im/sendIM".format(self.api_base_url),
-                data={
-                    "r": uuid.uuid4(),
-                    "aimsid": self.token,
-                    "t": target,
-                    "message": message,
-                    "mentions": ",".join(mentions) if mentions is not None else None,
-                    "parse": json.dumps([p.value for p in parse]) if parse is not None else None
-                },
-                timeout=self.timeout_s
-            )
+            for text in wrap(string=message, length=wrap_length):
+                response = self.http_session.post(
+                    url="{}/im/sendIM".format(self.api_base_url),
+                    data={
+                        "r": uuid.uuid4(),
+                        "aimsid": self.token,
+                        "t": target,
+                        "message": text,
+                        "mentions": ",".join(mentions) if mentions is not None else None,
+                        "parse": json.dumps([p.value for p in parse]) if parse is not None else None
+                    },
+                    timeout=self.timeout_s
+                )
+
+                self.__sent_im_cache[response.json()["response"]["data"]["msgId"]] = text
         except ReadTimeout:
             self.log.exception("Timeout while sending request!")
 
@@ -541,3 +551,15 @@ class BotLoggingHTTPAdapter(LoggingHTTPAdapter):
 
 class FileNotFoundException(Exception):
     pass
+
+
+class SkipDuplicateIMHandler(MessageHandler):
+    def __init__(self, cache):
+        super(SkipDuplicateIMHandler, self).__init__(filters=MessageFilter.message)
+
+        self.cache = cache
+
+    def check(self, event, dispatcher):
+        if super(SkipDuplicateIMHandler, self).check(event=event, dispatcher=dispatcher):
+            if self.cache.get(event.data["msgId"]) == event.data["message"]:
+                raise StopDispatch

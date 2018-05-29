@@ -1,8 +1,27 @@
 <img src="https://github.com/icq-bot/python-icq-bot/raw/master/logo.png" width="100" height="100">
 
-# python-icq-bot
+# 🐍 python-icq-bot
+
+[![](https://img.shields.io/pypi/v/python-icq-bot.svg)](https://pypi.org/project/python-icq-bot/)
+[![](https://img.shields.io/pypi/pyversions/python-icq-bot.svg)](https://pypi.org/project/python-icq-bot/)
 
 Pure Python interface for ICQ Bot API. Bot cookbook for Humans.
+
+# Table of contents
+- [Installing](#installing)
+- [Getting started](#getting-started)
+- [Example](#example)
+- [Starting your bot](#starting-your-bot)
+
+# Introduction
+
+This library provides complete ICQ Bot API 1.0 interface and compatible with Python 2.7, 3.4, 3.5 and 3.6.
+
+# Getting started
+
+Create your own bot by sending the /newbot command to <a href="https://icq.com/people/70001">MegaBot</a> and follow the instructions.
+
+Note a bot can only reply after the user has added it to his contact list, or if the user was the first to start a dialogue.
 
 # Installing
 
@@ -18,11 +37,7 @@ cd python-icq-bot
 python setup.py install
 ```
 
-# Getting started
-
-Create your bot by sending /newbot command to <a href="https://icq.com/people/70001">MegaBot</a> and follow instructions.
-
-# Examples
+# Example
 
 See the project example directory.
 
@@ -39,22 +54,22 @@ Some ICQ bots you can play with right now:<br>
 <a href="https://icq.com/720953874">Vinci Bot</a><br>
 <a href="https://icq.com/729775354">WolframAlpha Bot</a><br>
 
-## Starting your bot
+# Starting your bot
 
-Without virtualenv:
+Without Virtualenv:
 ```bash
 python my_bot.py
 ```
 
-Using virtualenv:
+Using Virtualenv:
 ```bash
-# Initializing virtualenv.
+# Initializing Virtualenv.
 virtualenv venv
 
-# Activating virtualenv.
+# Activating Virtualenv.
 source venv/bin/activate
 
-# Installing python-icq-bot library into local venv.
+# Installing python-icq-bot library into local venv directory.
 pip install --upgrade python-icq-bot
 
 # Starting your bot.
@@ -64,6 +79,6 @@ python my_bot.py
 deactivate
 ```
 
-# News
+# Get in touch
 
-<a href="https://icq.com/chat/python-icq-bot">ICQ channel</a>
+<a href="https://icq.com/chat/python-icq-bot">python-icq-bot channel</a>

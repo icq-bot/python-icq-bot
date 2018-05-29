@@ -9,13 +9,13 @@ here = path.abspath(path.dirname(__file__))
 
 
 def long_description():
-    with io.open(file=path.join(here, "README.md"), encoding="utf-8") as f:
-        return f.read()
+    with io.open(file=path.join(here, "README.md"), encoding="utf-8") as file:
+        return file.read()
 
 
 def requirements():
-    with io.open(file=path.join(here, "requirements.txt")) as f:
-        return f.readlines()
+    with io.open(file=path.join(here, "requirements.txt")) as file:
+        return file.readlines()
 
 
 setup(

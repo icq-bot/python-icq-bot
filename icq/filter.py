@@ -186,6 +186,6 @@ class MessageFilter(object):
 
     class _ChatFilter(Filter):
         def filter(self, event):
-            return MessageFilter.message(event) and "MChat_Attrs" in event.data
+            return "MChat_Attrs" in event.data
 
     chat = _ChatFilter()

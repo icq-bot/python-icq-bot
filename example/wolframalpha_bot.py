@@ -110,7 +110,7 @@ def search_cb(bot, event):
 
     if wolfram_response.status_code == requests.codes.ok:
         mime_type = cgi.parse_header(wolfram_response.headers.get("Content-Type", ""))[0]
-        if mime_type.split("/")[0] == "image":
+        if mime_type.split(sep="/")[0] == "image":
             with io.BytesIO(wolfram_response.content) as image_in, io.BytesIO() as image_out:
                 Image.open(image_in).save(image_out, "PNG")
                 image_out.seek(0)
@@ -139,7 +139,7 @@ def search_cb(bot, event):
     else:
         bot.send_im(
             target=source,
-            message="Something has gone wrong, try again later.\n---\nЧто-то пошло не так, попробуй ещё позже."
+            message="Something has gone wrong, try again later.\n---\nЧто-то пошло не так, попробуй ещё раз позже."
         )
 
     bot.set_typing(target=source, typing_status=TypingStatus.NONE)

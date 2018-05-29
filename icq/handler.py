@@ -108,7 +108,6 @@ class FeedbackCommandHandler(CommandHandler):
             bot.send_im(target=event.data["source"]["aimId"], message=self.error_reply)
 
 
-
 class UnknownCommandHandler(MessageHandler):
     def __init__(self, filters=None, callback=None):
         super(UnknownCommandHandler, self).__init__(

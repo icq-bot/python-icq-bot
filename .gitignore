@@ -1,7 +1,8 @@
 # Local virtualenv directories.
 /venv*/
 
-# Compiled / optimized / DLL files.
+# Compiled, optimized or cached files.
+.cache/
 __pycache__/
 *.py[cod]
 *$py.class

@@ -4,27 +4,7 @@ import random
 import sys
 from enum import Enum
 from functools import wraps
-from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
-
-
-class DynamicRotatingFileHandler(RotatingFileHandler):
-    # noinspection PyPep8Naming
-    def __init__(self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None, delay=False):
-        dir_name = os.path.dirname(filename)
-        file_name = os.path.basename(filename)
-        script_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-        filename = os.path.join(dir_name, script_name + file_name)
-
-        if dir_name:
-            try:
-                os.makedirs(dir_name)
-            except OSError:
-                if not os.path.isdir(dir_name):
-                    raise
-
-        super(DynamicRotatingFileHandler, self).__init__(
-            filename=filename, mode=mode, maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay
-        )
+from logging.handlers import TimedRotatingFileHandler
 
 
 class DynamicTimedRotatingFileHandler(TimedRotatingFileHandler):

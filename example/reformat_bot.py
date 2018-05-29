@@ -43,7 +43,7 @@ def reformat_json(text):
         raise ValueError
 
     try:
-        return json.dumps(json.loads(text), indent=FORMAT_INDENT)
+        return json.dumps(json.loads(text), indent=FORMAT_INDENT, sort_keys=True)
     except ValueError as e:
         return "Error while parsing JSON: {}".format(str(e))
 

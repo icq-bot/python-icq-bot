@@ -2,6 +2,28 @@ from enum import Enum, unique
 
 
 @unique
+class SystemGroup(Enum):
+    GENERAL = "General"
+    CONFERENCES = "Conferences"
+    PHONE_CONTACTS = "Phone Contacts"
+    TEMPORARILY = "Temporarily"
+    NOT_IN_LIST = "Not in list"
+
+
+@unique
+class RAPIStatusCode(Enum):
+    OK = 20000
+    FORBIDDEN = 40001
+    BLOCKED = 40101
+    BAD_AUTH = 40201
+    BAD_CLIENT = 40301
+    NOT_FOUND = 40401
+    RATE_LIMIT = 40501
+    AGE_RESTRICTION = 40601
+    SERVER_ERROR = 50000
+
+
+@unique
 class TypingStatus(Enum):
     LOOKING = "looking"  # Looking into active dialog.
     TYPING = "typing"  # Started typing, only send on transition, but not for every key press.
@@ -16,10 +38,26 @@ class ChatDefaultRole(Enum):
 
 
 @unique
+class ChatRole(Enum):
+    ADMIN = "admin"
+    MODER = "moder"
+    MEMBER = "member"
+    READONLY = "readonly"
+
+
+@unique
 class UserChatRole(Enum):
     ADMIN = "admin"
     MODER = "moder"
     MEMBER = "member"
+
+
+@unique
+class MChatMethod(Enum):
+    ADD_MEMBERS = "add_members"
+    DEL_MEMBERS = "del_members"
+    INVITE = "invite"
+    TURN_OUT = "turn_out"
 
 
 @unique

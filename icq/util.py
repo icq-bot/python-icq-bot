@@ -50,3 +50,7 @@ def signal_name_by_code(code):
 def invalidate_cached_property(o, name):
     if hasattr(o, name):
         delattr(o, name)
+
+
+def wrap(string, length):
+    return (string[i:i + length] for i in range(0, len(string), length))

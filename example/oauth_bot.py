@@ -9,7 +9,7 @@ from oauthlib.oauth1.rfc5849 import signature
 from icq.bot import ICQBot
 from icq.filter import MessageFilter
 from icq.handler import (
-    HelpCommandHandler, MessageHandler, UnknownCommandHandler, FeedbackCommandHandler
+    HelpCommandHandler, MessageHandler, UnknownCommandHandler, FeedbackCommandHandler, CommandHandler
 )
 
 try:
@@ -22,7 +22,7 @@ logging.config.fileConfig("logging.ini")
 log = logging.getLogger(__name__)
 
 NAME = "OAuth Bot"
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 TOKEN = "000.0000000000.0000000000:000000000"
 OWNER = "000000000"
 
@@ -31,7 +31,11 @@ HTTP_METHODS = {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "T
 
 def help_cb(bot, event):
     source = event.data["source"]["aimId"]
-    bot.send_im(target=source, message="You can send me:\n- URL\n- URL method\n- URL method secret")
+    bot.send_im(
+        target=source,
+        message="You can send me:\n- URL\n- URL method\n- URL method secret\n\nSend me command '/hmac key msg' to calcu"
+                "late Base64(HMAC(key, msg))."
+    )
 
 
 def message_cb(bot, event):
@@ -81,18 +85,34 @@ def message_cb(bot, event):
     )
 
 
+def hmac_cb(bot, event):
+    source = event.data["source"]["aimId"]
+    command_body = event.data["message"].partition(" ")[2]
+    (key, msg) = command_body.split()
+    bot.send_im(
+        target=source,
+        message="Base64(HMAC({key}, {msg})): {hmac}".format(
+            key=key,
+            msg=msg,
+            hmac=b64encode(HMAC(key=key.encode(), msg=msg.encode(), digestmod=hashlib.sha256).digest()).decode()
+        )
+    )
+
+
 def main():
     # Creating a new bot instance.
     bot = ICQBot(token=TOKEN, name=NAME, version=VERSION)
 
     # Registering handlers.
-    bot.dispatcher.add_handler(HelpCommandHandler())  # /setpassover is false for this bot.
+    bot.dispatcher.add_handler(HelpCommandHandler(callback=help_cb))
     bot.dispatcher.add_handler(MessageHandler(filters=MessageFilter.sticker, callback=help_cb))
+    bot.dispatcher.add_handler(UnknownCommandHandler(callback=help_cb))
 
     bot.dispatcher.add_handler(MessageHandler(
-        filters=~(MessageFilter.command | MessageFilter.sticker), callback=message_cb
+        filters=MessageFilter.message & ~(MessageFilter.command | MessageFilter.sticker), callback=message_cb
     ))
-    bot.dispatcher.add_handler(UnknownCommandHandler(callback=message_cb))
+
+    bot.dispatcher.add_handler(CommandHandler(command="hmac", callback=hmac_cb))
 
     bot.dispatcher.add_handler(FeedbackCommandHandler(target=OWNER))
 

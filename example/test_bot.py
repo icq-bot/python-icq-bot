@@ -20,7 +20,7 @@ OWNER = "000000000"
 
 
 def help_cb(bot, event):
-    source = event.data["source"]["aimId"]
+    source = event.data.get("aimId") or event.data["source"]["aimId"]
     (command, command_body) = event.data["message"].partition(" ")[::2]
     bot.send_im(
         target=source,

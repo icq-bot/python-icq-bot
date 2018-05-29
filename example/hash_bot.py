@@ -80,7 +80,7 @@ def main():
     bot = ICQBot(token=TOKEN, name=NAME, version=VERSION)
 
     # Registering handlers.
-    bot.dispatcher.add_handler(HelpCommandHandler())  # /setpassover is false for this bot.
+    bot.dispatcher.add_handler(HelpCommandHandler())
 
     bot.dispatcher.add_handler(MessageHandler(
         filters=~(MessageFilter.command | MessageFilter.file), callback=message_cb
