@@ -8,8 +8,9 @@
 Pure Python interface for ICQ Bot API. Bot cookbook for Humans.
 
 # Table of contents
-- [Installing](#installing)
+- [Introduction](#introduction)
 - [Getting started](#getting-started)
+- [Installing](#installing)
 - [Example](#example)
 - [Starting your bot](#starting-your-bot)
 
@@ -42,17 +43,17 @@ python setup.py install
 See the project example directory.
 
 Some ICQ bots you can play with right now:<br>
-<a href="https://icq.com/725223851">Echo Bot</a><br>
-<a href="https://icq.com/729805850">Giphy Bot</a><br>
-<a href="https://icq.com/720507564">Hash Bot</a><br>
+<a href="https://icq.com/725223851">Echo Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/echo_bot.py">source code</a>]<br>
+<a href="https://icq.com/729805850">Giphy Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/giphy_bot.py">source code</a>]<br>
+<a href="https://icq.com/720507564">Hash Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/hash_bot.py">source code</a>]<br>
 <a href="https://icq.com/70003">Meme Bot</a><br>
-<a href="https://icq.com/721765058">OAuth Bot</a><br>
-<a href="https://icq.com/720020179">Reformat Bot</a><br>
+<a href="https://icq.com/721765058">OAuth Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/oauth_bot.py">source code</a>]<br>
+<a href="https://icq.com/720020179">Reformat Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/reformat_bot.py">source code</a>]<br>
 <a href="https://icq.com/100500">Stickers Bot</a><br>
-<a href="https://icq.com/724894572">URL Encode Bot</a><br>
-<a href="https://icq.com/728777874">URL Decode Bot</a><br>
+<a href="https://icq.com/728777874">URL Decode Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/urldecode_bot.py">source code</a>]<br>
+<a href="https://icq.com/724894572">URL Encode Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/urlencode_bot.py">source code</a>]<br>
 <a href="https://icq.com/720953874">Vinci Bot</a><br>
-<a href="https://icq.com/729775354">WolframAlpha Bot</a><br>
+<a href="https://icq.com/729775354">WolframAlpha Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/wolframalpha_bot.py">source code</a>]<br>
 
 # Starting your bot
 
