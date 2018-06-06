@@ -1,15 +1,8 @@
-python-icq-bot == 0.0.14
+python-icq-bot == 0.0.15
 alphabet-detector == 0.0.7
 apiai == 1.2.3
-apscheduler == 3.5.1
 googletrans == 2.2.0
 lxml == 4.1.1
-more-itertools == 4.1.0
 oauthlib == 2.0.6
 Pillow == 4.3.0
-PyMySQL == 0.8.0
-PySocks == 1.6.8
-python-Levenshtein == 0.12.0
-pytz
-SQLAlchemy == 1.2.3
 transliterate == 1.10

@@ -3,26 +3,19 @@ import logging.config
 from icq.bot import ICQBot
 from icq.constant import TypingStatus
 from icq.filter import MessageFilter
-from icq.handler import (
-    TypingHandler, MessageHandler, CommandHandler, UnknownCommandHandler, FeedbackCommandHandler, HelpCommandHandler
-)
+from icq.handler import TypingHandler, MessageHandler, CommandHandler
 
 logging.config.fileConfig("logging.ini")
 log = logging.getLogger(__name__)
 
 NAME = "Echo Bot"
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 TOKEN = "000.0000000000.0000000000:000000000"
-OWNER = "000000000"
-
-
-def help_cb(bot, event):
-    log.debug("Command 'help' received, replying.")
-    bot.send_im(target=event.data["source"]["aimId"], message="I'm at your service!")
 
 
 def status_cb(bot, event):
     log.debug("Command 'status' received, replying.")
+
     bot.send_im(
         target=event.data["source"]["aimId"], message="https://files.icq.net/get/05k5r12erfSSAgyt09sNgH5a11d7cc1aj"
     )
@@ -30,6 +23,7 @@ def status_cb(bot, event):
 
 def typing_cb(bot, event):
     log.debug("Typing received, echoing with the same typing status.")
+
     bot.set_typing(target=event.data["aimId"], typing_status=TypingStatus(event.data["typingStatus"]))
 
 
@@ -53,14 +47,11 @@ def main():
 
     # Registering message handlers.
     bot.dispatcher.add_handler(TypingHandler(typing_cb))
-    bot.dispatcher.add_handler(MessageHandler(filters=MessageFilter.text, callback=message_cb))
+    bot.dispatcher.add_handler(MessageHandler(filters=MessageFilter.message, callback=message_cb))
     bot.dispatcher.add_handler(MessageHandler(filters=MessageFilter.sticker, callback=sticker_cb))
 
     # Registering command handlers.
-    bot.dispatcher.add_handler(HelpCommandHandler(callback=help_cb))
     bot.dispatcher.add_handler(CommandHandler(command="status", callback=status_cb))
-    bot.dispatcher.add_handler(FeedbackCommandHandler(target=OWNER))
-    bot.dispatcher.add_handler(UnknownCommandHandler(callback=message_cb))
 
     # Starting a polling thread watching for new events from server. This is a non-blocking call.
     bot.start_polling()

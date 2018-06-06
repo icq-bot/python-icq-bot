@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import re
-import time
 import uuid
 from signal import signal, SIGINT, SIGTERM, SIGABRT
 from threading import Thread, Lock
@@ -12,6 +11,7 @@ from time import sleep
 import requests
 from cached_property import cached_property
 from expiringdict import ExpiringDict
+from monotonic import monotonic
 from requests import ReadTimeout
 from requests.adapters import HTTPAdapter
 
@@ -170,7 +170,7 @@ class ICQBot(object):
             "timeout": [int(poll_timeout_s) * 1000]
         })
 
-        time_to_wait_s = self._next_fetch_after_s - time.monotonic()
+        time_to_wait_s = self._next_fetch_after_s - monotonic()
         if time_to_wait_s > 0:
             self.log.debug("Sleeping for {:.3f} seconds before next fetch.".format(time_to_wait_s))
             sleep(time_to_wait_s)
@@ -178,10 +178,10 @@ class ICQBot(object):
         try:
             result = self.http_session.get(url=url, params=params, timeout=poll_timeout_s + self.timeout_s)
             result_data = result.json()["response"]["data"]
-            self._next_fetch_after_s = time.monotonic() + result_data.get("timeToNextFetch", 1) / 1000
+            self._next_fetch_after_s = monotonic() + result_data.get("timeToNextFetch", 1) / 1000
             self._fetch_base_url = result_data["fetchBaseURL"]
         except Exception:
-            self._next_fetch_after_s = time.monotonic() + 1
+            self._next_fetch_after_s = monotonic() + 1
             raise
 
         return result

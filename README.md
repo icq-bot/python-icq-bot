@@ -13,6 +13,7 @@ Pure Python interface for ICQ Bot API. Bot cookbook for Humans.
 - [Installing](#installing)
 - [Example](#example)
 - [Starting your bot](#starting-your-bot)
+- [Get in touch](#get-in-touch)
 
 # Introduction
 
@@ -43,6 +44,7 @@ python setup.py install
 See the project example directory.
 
 Some ICQ bots you can play with right now:<br>
+<a href="https://icq.com/742103765">Chat ID Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/chat_id_bot.py">source code</a>]<br>
 <a href="https://icq.com/725223851">Echo Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/echo_bot.py">source code</a>]<br>
 <a href="https://icq.com/729805850">Giphy Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/giphy_bot.py">source code</a>]<br>
 <a href="https://icq.com/720507564">Hash Bot</a> [<a href="https://github.com/icq-bot/python-icq-bot/blob/master/example/hash_bot.py">source code</a>]<br>
