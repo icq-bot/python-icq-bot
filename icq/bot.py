@@ -198,6 +198,18 @@ class ICQBot(object):
             timeout=self.timeout_s
         )
 
+    def chat_add(self, chat_id, members):
+        return self.http_session.post(
+            url="{}/chat/add".format(self.api_base_url),
+            data={
+                "r": uuid.uuid4(),
+                "aimsid": self.token,
+                "chat_id": chat_id,
+                "members": members if isinstance(members, six.string_types) else ";".join(members)
+            },
+            timeout=self.timeout_s
+        )
+
     def chat_resolve_pending(self, sn, members):
         return self.http_session.post(
             url="{}/rapi".format(self.api_base_url),
@@ -363,6 +375,44 @@ class ICQBot(object):
             raise FileNotFoundException
 
         return response
+
+    def get_history(self, sn, from_msg_id, count, patch_version="init", till_msg_id=None):
+        params = {
+            "sn": sn,
+            "fromMsgId": from_msg_id,
+            "count": count,
+            "patchVersion": patch_version
+        }
+
+        if till_msg_id is not None:
+            params.update({"tillMsgId": till_msg_id})
+
+        return self.http_session.post(
+            url="{}/rapi".format(self.api_base_url),
+            json={
+                "method": "getHistory",
+                "reqId": str(uuid.uuid4()),
+                "aimsid": self.token,
+                "params": params
+            },
+            timeout=self.timeout_s
+        )
+
+    def mod_chat_member(self, stamp, member_sn, role):
+        return self.http_session.post(
+            url="{}/rapi".format(self.api_base_url),
+            json={
+                "method": "modChatMember",
+                "reqId": str(uuid.uuid4()),
+                "aimsid": self.token,
+                "params": {
+                    "stamp": stamp,
+                    "memberSn": member_sn,
+                    "role": role
+                }
+            },
+            timeout=self.timeout_s
+        )
 
     def pin_message(self, sn, msg_id, unpin=None):
         params = {"sn": sn, "msgId": msg_id}
