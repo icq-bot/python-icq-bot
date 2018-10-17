@@ -20,6 +20,7 @@ class EventType(Enum):
     SERVICE = "service"
     NOTIFICATION = "notification"
     MENTION_ME_MESSAGE = "mentionMeMessage"
+    WEBRTC_MSG = "webrtcMsg"
 
 
 class Event(object):

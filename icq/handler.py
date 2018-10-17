@@ -133,3 +133,11 @@ class TypingHandler(Handler):
 class SentIMHandler(Handler):
     def check(self, event, dispatcher):
         return event.type is EventType.SENT_IM
+
+
+class WebRTCHandler(Handler):
+    def check(self, event, dispatcher):
+        return (
+            super(WebRTCHandler, self).check(event=event, dispatcher=dispatcher) and
+            event.type is EventType.WEBRTC_MSG
+        )
