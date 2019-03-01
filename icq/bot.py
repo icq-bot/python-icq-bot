@@ -455,7 +455,7 @@ class ICQBot(object):
             timeout=self.timeout_s
         )
 
-    def send_im(self, target, message, mentions=None, parse=None, wrap_length=5000):
+    def send_im(self, target, message, mentions=None, parse=None, update_msg_id=None, wrap_length=5000):
         """
         Send text message.
 
@@ -465,6 +465,7 @@ class ICQBot(object):
         :param parse: Iterable with several values from :class:`icq.constant.MessageParseType` specifying which message
             items should be parsed by target client (making preview, snippets, etc.). Specify empty iterable to avoid
             parsing message at target client. By default all types are included.
+        :param update_msg_id: Message ID to update.
         :param wrap_length: Maximum length of symbols in one message. Text exceeding this length will be sent in several
             messages.
 
@@ -480,7 +481,8 @@ class ICQBot(object):
                         "t": target,
                         "message": text,
                         "mentions": ",".join(mentions) if mentions is not None else None,
-                        "parse": json.dumps([p.value for p in parse]) if parse is not None else None
+                        "parse": json.dumps([p.value for p in parse]) if parse is not None else None,
+                        "updateMsgId": update_msg_id
                     },
                     timeout=self.timeout_s
                 )
