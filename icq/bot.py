@@ -4,11 +4,12 @@ import logging
 import os
 import re
 import uuid
-from signal import signal, SIGINT, SIGTERM, SIGABRT
-from threading import Thread, Lock
+from signal import SIGABRT, SIGINT, SIGTERM, signal
+from threading import Lock, Thread
 from time import sleep
 
 import requests
+import six
 from cached_property import cached_property
 from expiringdict import ExpiringDict
 from monotonic import monotonic
@@ -19,8 +20,8 @@ import icq
 from icq.dispatcher import Dispatcher, StopDispatch
 from icq.event import Event, EventType
 from icq.filter import MessageFilter
-from icq.handler import MyInfoHandler, MessageHandler
-from icq.util import signal_name_by_code, invalidate_cached_property, wrap
+from icq.handler import MessageHandler, MyInfoHandler
+from icq.util import invalidate_cached_property, signal_name_by_code, wrap
 
 try:
     from urllib import parse as urlparse
@@ -469,10 +470,11 @@ class ICQBot(object):
         :param wrap_length: Maximum length of symbols in one message. Text exceeding this length will be sent in several
             messages.
 
-        :return: HTTP response.
+        :return: Tuple of HTTP responses.
         """
         try:
-            for text in wrap(string=message, length=wrap_length):
+            responses = set()
+            for text in wrap(string=str(message), length=wrap_length):
                 response = self.http_session.post(
                     url="{}/im/sendIM".format(self.api_base_url),
                     data={
@@ -480,14 +482,23 @@ class ICQBot(object):
                         "aimsid": self.token,
                         "t": target,
                         "message": text,
-                        "mentions": ",".join(mentions) if mentions is not None else None,
+                        "mentions": (
+                            mentions if isinstance(mentions, six.string_types) or not hasattr(mentions, "__iter__")
+                            else ",".join(mentions)
+                        ),
                         "parse": json.dumps([p.value for p in parse]) if parse is not None else None,
                         "updateMsgId": update_msg_id
                     },
                     timeout=self.timeout_s
                 )
 
-                self.__sent_im_cache[response.json()["response"]["data"]["msgId"]] = text
+                try:
+                    self.__sent_im_cache[response.json()["response"]["data"]["msgId"]] = text
+                except (LookupError, TypeError):
+                    self.log.exception("Error while getting 'msgId'!")
+
+                responses.add(response)
+            return tuple(responses)
         except ReadTimeout:
             self.log.exception("Timeout while sending request!")
 

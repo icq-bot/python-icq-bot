@@ -17,7 +17,7 @@ Pure Python interface for ICQ Bot API. Bot cookbook for Humans.
 
 # Introduction
 
-This library provides complete ICQ Bot API 1.0 interface and compatible with Python 2.7, 3.4, 3.5 and 3.6.
+This library provides complete ICQ Bot API 1.0 interface and compatible with Python 2.7, 3.4, 3.5, 3.6 and 3.7.
 
 # Getting started
 

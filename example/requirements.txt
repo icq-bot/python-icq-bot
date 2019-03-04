@@ -1,4 +1,4 @@
-python-icq-bot == 0.0.18
+python-icq-bot == 0.0.19
 alphabet-detector == 0.0.7
 apiai == 1.2.3
 googletrans == 2.2.0
