@@ -1,8 +1,0 @@
-python-icq-bot == 0.0.19
-alphabet-detector == 0.0.7
-apiai == 1.2.3
-googletrans == 2.2.0
-lxml == 4.1.1
-oauthlib == 2.0.6
-Pillow == 4.3.0
-transliterate == 1.10
